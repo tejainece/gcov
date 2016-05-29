@@ -30,6 +30,9 @@ class GcovReadHelperFile extends GcovReadHelper {
 
   GcovReadHelperFile(this.bigEndian, this.filename) {
     File lFile = new File(filename);
+    if(!lFile.existsSync()) {
+      throw new Exception("File does not exist!");
+    }
     _access = lFile.openSync();
   }
 
@@ -43,8 +46,10 @@ class GcovReadHelperFile extends GcovReadHelper {
 
   @override
   String getSubstring(int aStart, int aEnd) {
-    List<int> lBuf = <int>[];
-    _access.readIntoSync(lBuf, aStart, aEnd);
+    int aLen = aEnd-aStart;
+    List<int> lBuf = new List.filled(aLen, 0);
+    _access.setPositionSync(aStart);
+    _access.readIntoSync(lBuf, 0, aLen);
     return new String.fromCharCodes(lBuf);
   }
 }

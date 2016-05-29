@@ -1,15 +1,37 @@
 part of gcov.gcno.reader;
 
+class GcnoEdge {
+  GcnoEdge(this.src, this.dst) {}
+
+  final GcnoBlock src;
+
+  final GcnoBlock dst;
+}
+
 class GcnoBlock {
-  GcnoBlock() {
-    //TODO
+  GcnoBlock(this.index) {}
+
+  final int index;
+
+  List<GcnoEdge> get srcEdges => _srcEdges.toList(growable: false);
+
+  List<GcnoEdge> get dstEdges => _dstEdges.toList(growable: false);
+
+  Map<String, Set<int>> get lines {
+    Map<String, Set<int>> lRet = new Map<String, Set<int>>();
+
+    for(String cFile in _lines.keys) {
+      lRet[cFile] = new Set<int>.from(_lines[cFile]);
+    }
+
+    return lRet;
   }
 
   List<GcnoEdge> _srcEdges = <GcnoEdge>[];
 
   List<GcnoEdge> _dstEdges = <GcnoEdge>[];
 
-  List<int> _lines = <int>[];
+  Map<String, Set<int>> _lines = {};
 
   void addSrcEdge(GcnoEdge aSrc) {
     _srcEdges.add(aSrc);
@@ -19,24 +41,67 @@ class GcnoBlock {
     _dstEdges.add(aDst);
   }
 
-  void addLine(int aLine) {
-    _lines.add(aLine);
+  void addLine(String aFile, int aLine) {
+    Set<int> lLines = _lines[aFile];
+
+    if(lLines is! Set<int>) {
+      lLines = new Set<int>();
+
+      _lines[aFile] = lLines;
+    }
+
+    lLines.add(aLine);
   }
-}
 
-class GcnoEdge {
-  GcnoEdge(this.src, this.dst) {}
+  void print(PrintMaker aMk) {
+    aMk.wrLn("Block${index}:");
 
-  final GcnoBlock src;
+    aMk.incIndent();
 
-  final GcnoBlock dst;
+    aMk.wrLn("Lines:");
+
+    aMk.incIndent();
+    for(String cFile in _lines.keys) {
+      aMk.wrLn(cFile);
+      aMk.incIndent();
+      aMk.wrLn(_lines[cFile].join(", "));
+      aMk.decIndent();
+    }
+    aMk.decIndent();
+
+    aMk.wrLn("to:");
+    aMk.incIndent();
+    StringBuffer lSrcEdges = _srcEdges.fold(new StringBuffer(), (StringBuffer aOld, GcnoEdge aEl) {
+      if(aOld.length != 0) {
+        aOld.write(", ");
+      }
+      aOld.write("Block${aEl.dst.index}");
+      return aOld;
+    });
+    aMk.wrLn(lSrcEdges.toString());
+    aMk.decIndent();
+
+    aMk.wrLn("from:");
+    aMk.incIndent();
+    StringBuffer lDstEdges = _dstEdges.fold(new StringBuffer(), (StringBuffer aOld, GcnoEdge aEl) {
+      if(aOld.length != 0) {
+        aOld.write(", ");
+      }
+      aOld.write("Block${aEl.src.index}");
+      return aOld;
+    });
+    aMk.wrLn(lDstEdges.toString());
+    aMk.decIndent();
+
+    aMk.decIndent();
+  }
 }
 
 /// \brief Function information in GCNO file
 class GcnoFunction {
   GcnoFunction(this.identifier, this.checksum,
       this.linenum, this.name,
-      this.filename, this.blocks, this.edges) {
+      this.filename, this.blocks) {
   }
 
   final int identifier;
@@ -51,11 +116,101 @@ class GcnoFunction {
 
   List<GcnoBlock> blocks;
 
-  List<GcnoEdge> edges;
+  Map<String, Set<int>> getLines() {
+    Map<String, Set<int>> lRet = new Map<String, Set<int>>();
+
+    for(GcnoBlock cBlocks in blocks) {
+      for(String cFile in cBlocks._lines.keys) {
+        Set<int> bLines = lRet[cFile];
+
+        if(bLines is! Set<int>) {
+          bLines = new Set<int>();
+
+          lRet[cFile] = bLines;
+        }
+
+        bLines.addAll(cBlocks._lines[cFile]);
+      }
+    }
+
+    return lRet;
+  }
+
+  String toString() {
+    PrintMaker lMk = new PrintMaker();
+
+    lMk.wrLn("Function ${name}");
+
+    lMk.incIndent();
+    lMk.wrLn("Identifer: ${identifier}");
+    lMk.wrLn("File: ${filename}");
+    lMk.wrLn("Line: ${linenum}");
+    lMk.wrLn("Blocks #: ${blocks.length}");
+
+    Map<String, Set<int>> lLines = getLines();
+
+    lMk.wrLn("Lines:");
+
+    lMk.incIndent();
+    for(String cFile in lLines.keys) {
+      lMk.wrLn(cFile);
+      lMk.incIndent();
+      lMk.wrLn(lLines[cFile].join(", "));
+      lMk.decIndent();
+    }
+    lMk.decIndent();
+
+    lMk.wrLn("Blocks:");
+
+    for(GcnoBlock cBlocks in blocks) {
+      lMk.incIndent();
+      cBlocks.print(lMk);
+      lMk.decIndent();
+    }
+
+    lMk.decIndent();
+
+    return lMk.toString();
+  }
 }
 
 class GcnoProgram {
   GcnoProgram(this.functions);
 
   List<GcnoFunction> functions;
+
+  String toString() {
+    String lRet = "";
+
+    for(GcnoFunction cFunc in functions) {
+      lRet += cFunc.toString();
+    }
+
+    return lRet;
+  }
+}
+
+class PrintMaker {
+  PrintMaker();
+
+  StringBuffer _buffer = new StringBuffer();
+
+  int _indent = 0;
+
+  void incIndent() {
+    _indent++;
+  }
+
+  void decIndent() {
+    _indent--;
+  }
+
+  void wrLn(String aStr, [aIndent = 0]) {
+    String lSpaces = ' ' * ((aIndent + _indent)*2);
+    _buffer.writeln(lSpaces + aStr);
+  }
+
+  String toString() {
+    return _buffer.toString();
+  }
 }

@@ -156,7 +156,7 @@ class GcnoReader extends GcovReader {
     }
 
     GcnoFunction bNewFunc = new GcnoFunction(lIdentifier, lCSum, lLineNum,
-        lFuncName.item2, lFileName.item2, lBlocks.item2, lEdges.item2);
+        lFuncName.item2, lFileName.item2, lBlocks.item2);
 
     return new Tuple2<int, GcnoFunction>(lOffset, bNewFunc);
   }
@@ -173,7 +173,7 @@ class GcnoReader extends GcovReader {
 
     List<GcnoBlock> lBlocks = <GcnoBlock>[];
     for (int cIdx = 0; cIdx < lBlockCnt; cIdx++) {
-      lBlocks.add(new GcnoBlock());
+      lBlocks.add(new GcnoBlock(cIdx));
 
       //TODO block flags
       lOffset += 4;
@@ -246,14 +246,14 @@ class GcnoReader extends GcovReader {
       lOffset += lFileName.item1;
 
       while ((lOffset-4) < (lLen - 8)) {
-        int bLine = helper.getInt32At(lOffset);
+        int bLine = helper.getInt32At(aPos + lOffset);
         lOffset += 4;
 
         if (bLine == 0) {
           continue;
         }
 
-        aBlocks[lBlock].addLine(bLine);
+        aBlocks[lBlock].addLine(lFileName.item2, bLine);
       }
 
       //Terminating null character

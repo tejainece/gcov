@@ -1,6 +1,7 @@
 import 'package:test/test.dart';
 import 'package:gcov/gcov/gcno/reader/reader.dart';
 import 'package:gcov/gcov/common/common.dart';
+import 'package:gcov/gcov/writerFile.dart';
 
 void main() {
   group("", () {
@@ -94,21 +95,40 @@ void main() {
       expect(lPrg.functions.length, equals(0));
     });
 
-    test("No functions", () {
-      var lHelper = new GcovReadHelperStr(false, "test/data/test1/test1.gcno");
+    test("test1", () {
+      var lHelper = new GcovReadHelperFile(false, "test/data/test1/main.gcno");
       var lGcno = new GcnoReader(false, lHelper);
 
       expect(lGcno.getFormatStr(), equals("gcno"));
       expect(lGcno.getFormat(), equals(GCNO_FORMAT));
       expect(lGcno.getVersionStr(), equals("503*"));
       expect(lGcno.getVersion(), equals(0x3530332A));
-      expect(lGcno.getChecksum(), equals(4059772767));
+      expect(lGcno.getChecksum(), equals(0xFC53CDC9));
 
       expect(lGcno.isFormatValid(), isTrue);
       expect(lGcno.isVersionValid(), isTrue);
 
       GcnoProgram lPrg = lGcno.parse();
-      expect(lPrg.functions.length, equals(0));
+      expect(lPrg.functions.length, equals(1));
+    });
+
+    test("test2", () {
+      var lHelper = new GcovReadHelperFile(false, "test/data/test2/main.gcno");
+      var lGcno = new GcnoReader(false, lHelper);
+
+      expect(lGcno.getFormatStr(), equals("gcno"));
+      expect(lGcno.getFormat(), equals(GCNO_FORMAT));
+      expect(lGcno.getVersionStr(), equals("503*"));
+      expect(lGcno.getVersion(), equals(0x3530332A));
+      expect(lGcno.getChecksum(), equals(0xFC697725));
+
+      expect(lGcno.isFormatValid(), isTrue);
+      expect(lGcno.isVersionValid(), isTrue);
+
+      GcnoProgram lPrg = lGcno.parse();
+      expect(lPrg.functions.length, equals(3));
+
+      print(lPrg);
     });
 
     /*
