@@ -1,0 +1,2 @@
+library gcov.gcda.common;
+

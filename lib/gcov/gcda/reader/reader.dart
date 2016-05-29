@@ -1,0 +1,1 @@
+library gcov.gcda.reader;
