@@ -6,20 +6,6 @@ import 'package:gcov/gcov/common/common.dart';
 part 'function.dart';
 part 'exceptions.dart';
 
-class Err {
-  const Err(this.msg);
-
-  Err.New(this.msg);
-
-  final String msg;
-
-  String toString() => msg;
-}
-
-const Err invalidFormatErr = const Err("Invalid format!");
-
-const Err unsupportedVersionErr = const Err("Unsupport version!");
-
 /// Reads GCNO files given as string
 class GcnoReader extends GcovReader {
   final bool bigEndian;

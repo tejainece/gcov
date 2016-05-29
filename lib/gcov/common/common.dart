@@ -19,6 +19,8 @@ const int GCNO_HEADER_LEN = 12;
 /// Format string for GCNO file
 const int GCNO_FORMAT = 0x67636E6F;
 
+const int GCDA_FORMAT = 0x67636461;
+
 /// Tag to mark start of function
 const int GCOV_FUNCTION_TAG = 0x01000000;
 
@@ -31,6 +33,14 @@ const int GCOV_EDGE_TAG = 0x01430000;
 /// Tag to mark start of line
 const int GCOV_LINE_TAG = 0x01450000;
 
+const int GCOV_TAG_OBJECT_SUMMARY = 0xA1000000;
+
+const int GCOV_TAG_PROGRAM_SUMMARY = 0xA3000000;
+
+const int GCOV_TAG_COUNTER_BASE = 0x01A10000;
+
+const int GCOV_TAG_ARC_COUNTER = GCOV_TAG_COUNTER_BASE;
+
 /// List of valid GCNO versions this library can understand
 const List<String> GCOV_VERSIONS_VALID = const <String>["503*"];
 
@@ -41,3 +51,17 @@ const List<String> GCOV_VERSIONS_VALID = const <String>["503*"];
 int gcovStringLen(String aStr) {
   return (aStr.length/4).ceil() + 1;
 }
+
+class Err {
+  const Err(this.msg);
+
+  Err.New(this.msg);
+
+  final String msg;
+
+  String toString() => msg;
+}
+
+const Err invalidFormatErr = const Err("Invalid format!");
+
+const Err unsupportedVersionErr = const Err("Unsupport version!");

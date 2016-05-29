@@ -1,5 +1,5 @@
 all: main.o
-	gcc main.o -o main.exe
+	gcc main.o -fprofile-arcs -o main.exe
 
 main.o: main.c
 	gcc main.c -ftest-coverage -fprofile-arcs -c -o main.o
@@ -8,4 +8,4 @@ main.o: main.c
 
 
 clean:
-	-rm -rf *.o
+	-rm -rf *.o main.exe
