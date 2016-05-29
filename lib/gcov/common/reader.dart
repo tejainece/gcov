@@ -66,6 +66,13 @@ abstract class GcovReadHelper {
 
   int get contentLen;
 
+  int getInt64At(int aPos) {
+    int lLow = getInt32At(aPos);
+    int lHigh = getInt32At(aPos+4);
+
+    return (lHigh << 32) | lLow;
+  }
+
   int getInt32At(int aPos) {
     String lStr = getSubstring(aPos, aPos + 4);
 

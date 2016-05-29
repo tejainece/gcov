@@ -1,11 +1,47 @@
 part of gcov.gcno.reader;
 
+const int GCOV_ARCFLAG_ON_TREE = 0x1;
+const int GCOV_ARCFLAG_FAKE = 0x2;
+const int GCOV_ARCFLAG_FALLTHROUGH = 0x4;
+
 class GcnoEdge {
-  GcnoEdge(this.src, this.dst) {}
+  final int flags;
+
+  GcnoEdge(this.src, this.dst, this.flags) {}
 
   final GcnoBlock src;
 
   final GcnoBlock dst;
+
+  bool get isOnTree => (flags & GCOV_ARCFLAG_ON_TREE) != 0;
+
+  bool get isFake => (flags & GCOV_ARCFLAG_FAKE) != 0;
+
+  bool get isFallthrough => (flags & GCOV_ARCFLAG_FALLTHROUGH) != 0;
+
+  String flagStr() {
+    String lRet = "";
+
+    if(isFallthrough) {
+      lRet += "L";
+    } else {
+      lRet += "-";
+    }
+
+    if(isFake) {
+      lRet += "F";
+    } else {
+      lRet += "-";
+    }
+
+    if(isOnTree) {
+      lRet += "T";
+    } else {
+      lRet += "-";
+    }
+
+    return lRet;
+  }
 }
 
 class GcnoBlock {
@@ -75,7 +111,7 @@ class GcnoBlock {
       if(aOld.length != 0) {
         aOld.write(", ");
       }
-      aOld.write("Block${aEl.dst.index}");
+      aOld.write("Block${aEl.dst.index}[${aEl.flagStr()}]");
       return aOld;
     });
     aMk.wrLn(lSrcEdges.toString());
@@ -87,7 +123,7 @@ class GcnoBlock {
       if(aOld.length != 0) {
         aOld.write(", ");
       }
-      aOld.write("Block${aEl.src.index}");
+      aOld.write("Block${aEl.src.index}[${aEl.flagStr()}]");
       return aOld;
     });
     aMk.wrLn(lDstEdges.toString());
@@ -179,11 +215,25 @@ class GcnoProgram {
 
   List<GcnoFunction> functions;
 
-  String toString() {
+  String print({Set<String> aShowOnly, Set<String> aHide}) {
     String lRet = "";
 
     for(GcnoFunction cFunc in functions) {
-      lRet += cFunc.toString();
+      if(aShowOnly.length == 0 && aHide.length == 0) {
+        lRet += cFunc.toString();
+      } else if(aShowOnly.length == 0) {
+        if(!aHide.contains(cFunc.name)) {
+          lRet += cFunc.toString();
+        }
+      } else if(aHide.length == 0) {
+        if(aShowOnly.contains(cFunc.name)) {
+          lRet += cFunc.toString();
+        }
+      } else {
+        if(!aHide.contains(cFunc.name) && aShowOnly.contains(cFunc.name)) {
+          lRet += cFunc.toString();
+        }
+      }
     }
 
     return lRet;

@@ -196,14 +196,14 @@ class GcnoReader extends GcovReader {
         }
         lOffset += 4;
 
-        GcnoEdge bEdge = new GcnoEdge(aBlocks[lBlock], aBlocks[bDst]);
+        int bFlag = helper.getInt32At(aPos + lOffset);
+        lOffset += 4;
+
+        GcnoEdge bEdge = new GcnoEdge(aBlocks[lBlock], aBlocks[bDst], bFlag);
         lRet.add(bEdge);
 
         aBlocks[lBlock].addSrcEdge(bEdge);
         aBlocks[bDst].addDstEdge(bEdge);
-
-        //TODO edge flags
-        lOffset += 4;
       }
     }
 

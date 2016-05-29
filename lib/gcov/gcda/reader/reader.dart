@@ -49,8 +49,10 @@ class GcdaReader extends GcovReader {
       } else if(bTag == GCOV_FUNCTION_TAG) {
         var bFunc = _parseFunctionTag(lPos);
         lPos += bFunc.item1;
+      } else if(bTag == 0) {
+
       } else {
-        throw new Exception("Unknown tag!");
+        throw new Exception("Unknown tag: ${bTag}!");
       }
     }
 
@@ -99,16 +101,18 @@ class GcdaReader extends GcovReader {
 
   Tuple2<int, dynamic> _parseArcCountsTag(int aPos) {
     int lOffset = 0;
-    int lLen = helper.getInt32At(aPos + lOffset);
+    final int lLen = helper.getInt32At(aPos + lOffset);
     lOffset += 4;
 
     //TODO check if has length
 
-    List<int> lCounts = new List<int>.filled(lLen, 0);
+    final int lNumCounts = lLen~/2;
 
-    for(int cIdx = 0; cIdx < lLen; cIdx++) {
-      lCounts[cIdx] = helper.getInt32At(aPos + lOffset);
-      lOffset += 4;
+    List<int> lCounts = new List<int>.filled(lNumCounts, 0);
+
+    for(int cIdx = 0; cIdx < lNumCounts; cIdx++) {
+      lCounts[cIdx] = helper.getInt64At(aPos + lOffset);
+      lOffset += 8;
     }
 
     return new Tuple2<int, dynamic>(lOffset, null);
@@ -116,41 +120,45 @@ class GcdaReader extends GcovReader {
 
   Tuple2<int, dynamic> _parseObjectTag(int aPos) {
     int lOffset = 0;
-    int lLen = helper.getInt32At(aPos + lOffset);
+    final int lLen = helper.getInt32At(aPos + lOffset);
     lOffset += 4;
 
     //TODO check if has length
 
-    int lCSum = helper.getInt32At(aPos + lOffset);
+    final int lCSum = helper.getInt32At(aPos + lOffset);
     lOffset += 4;
 
-    List<int> lCounts = new List<int>.filled(lLen-1, 0);
+    final int lNumCounts = (lLen-1)~/2;
 
-    for(int cIdx = 0; cIdx < (lLen-1); cIdx++) {
-      lCounts[cIdx] = helper.getInt32At(aPos + lOffset);
-      lOffset += 4;
+    List<int> lCounts = new List<int>.filled(lNumCounts, 0);
+
+    for(int cIdx = 0; cIdx < lNumCounts; cIdx++) {
+      lCounts[cIdx] = helper.getInt64At(aPos + lOffset);
+      lOffset += 8;
     }
 
-    return new Tuple2<int, dynamic>(lLen, null);
+    return new Tuple2<int, dynamic>(lOffset, null);
   }
 
   Tuple2<int, dynamic> _parseProgramTag(int aPos) {
     int lOffset = 0;
-    int lLen = helper.getInt32At(aPos + lOffset);
+    final int lLen = helper.getInt32At(aPos + lOffset);
     lOffset += 4;
 
     //TODO check if has length
 
-    int lCSum = helper.getInt32At(aPos + lOffset);
+    final int lCSum = helper.getInt32At(aPos + lOffset);
     lOffset += 4;
 
-    List<int> lCounts = new List<int>.filled(lLen-1, 0);
+    final int lNumCounts = (lLen-1)~/2;
 
-    for(int cIdx = 0; cIdx < (lLen-1); cIdx++) {
-      lCounts[cIdx] = helper.getInt32At(aPos + lOffset);
-      lOffset += 4;
+    List<int> lCounts = new List<int>.filled(lNumCounts, 0);
+
+    for(int cIdx = 0; cIdx < lNumCounts; cIdx++) {
+      lCounts[cIdx] = helper.getInt64At(aPos + lOffset);
+      lOffset += 8;
     }
 
-    return new Tuple2<int, dynamic>(lLen, null);
+    return new Tuple2<int, dynamic>(lOffset, null);
   }
 }
